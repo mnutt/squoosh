@@ -1,0 +1,43 @@
+{
+  "nodes": {
+    "mozjpeg": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1499684294,
+        "narHash": "sha256-frpQdkk7bJE5qbV70fdL1FsC4eI0Fm8FWshqBQxCRtk=",
+        "owner": "mozilla",
+        "repo": "mozjpeg",
+        "rev": "f154ccc091cbc22141cdfd531e5ad1fdc5bc53c7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mozilla",
+        "ref": "v3.3.1",
+        "repo": "mozjpeg",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1722640603,
+        "narHash": "sha256-TcXjLVNd3VeH1qKPH335Tc4RbFDbZQX+d7rqnDUoRaY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "81610abc161d4021b29199aa464d6a1a521e0cc9",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
+    "root": {
+      "inputs": {
+        "mozjpeg": "mozjpeg",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
