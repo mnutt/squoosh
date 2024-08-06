@@ -1,14 +1,11 @@
 {
   inputs = {
+    nixpkgs = {
+      url = "github:nixos/nixpkgs/24.05";
+    };
     mozjpeg = {
       url = "github:mozilla/mozjpeg/v3.3.1";
       flake = false;
-
-      # type = "github";
-      # owner = "mozilla";
-      # repo = "mozjpeg";
-      # rev = "v3.3.1";
-      # hash = "sha256-frpQdkk7bJE5qbV70fdL1FsC4eI0Fm8FWshqBQxCRtk=";
     };
   };
   outputs =
@@ -36,7 +33,7 @@
         '';
         installPhase = ''
           mkdir -p $out
-          cp 
+          # cp 
         '';
       };
       mozjpeg = stdenv.mkDerivation {
@@ -49,47 +46,39 @@
           emscripten
           pkg-config
         ];
-        preConfigure = ''
+        configurePhase = ''
             # $HOME is required for Emscripten to work.
             # See: https://nixos.org/manual/nixpkgs/stable/#emscripten
           	export HOME=$TMPDIR
-          	autoreconf -if
+          	autoreconf -ifv
+            emconfigure ./configure \
+              --disable-shared \
+              --without-turbojpeg \
+              --without-simd \
+              --without-arith-enc \
+              --without-arith-dec \
+              --with-build-date=squoosh \
+              --prefix=$out
         '';
-        # configurePhase = ''
-
-        #     runHook preConfigure
-        #     emconfigure ./configure $configureFlags
-        #     runHook postConfigure
-        # '';
-        configureScript = "emconfigure ./configure";
-        configureFlags = [
-          "--disable-shared"
-          "--without-turbojpeg"
-          "--without-simd"
-          "--without-arith-enc"
-          "--without-arith-dec"
-          "--with-build-date=squoosh"
-        ];
-        buildFlags = [
-          "libjpeg.la"
-          "rdswitch.o"
-        ];
         buildPhase = ''
-          	emmake make -j$(nproc) $buildFlags
+        	export HOME=$TMPDIR
+        	emmake make V=1 -j$(nproc) --trace libjpeg.la
         '';
         installPhase = ''
-            mkdir -p $out/lib
-            mkdir -p $out/include
-            cp .libs/libjpeg.a $out/lib
-            cp rdswitch.o $out/lib
-            cp *.h $out/include
+          make install-includeHEADERS install-libLTLIBRARIES
         '';
-        checkPhase = ''
-          true
-        '';
+        dontFixup = true;
+
       };
       };
       devShells.${system}.default = pkgs.mkShell {
+        packages = [
+          autoconf
+          automake
+          libtool
+          emscripten
+          pkg-config
+        ];
         shellHook = ''
           echo "Path to MozJPEG: ${mozjpeg}"
         '';
