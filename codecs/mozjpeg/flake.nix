@@ -20,12 +20,12 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       with pkgs;
-      {
+      rec {
         packages = rec {
           default = mozjpeg-squoosh;
           mozjpeg-squoosh = stdenv.mkDerivation {
             name = "mozjpeg-squoosh";
-            src = ./.;
+            src = lib.cleanSource ./.;
             nativeBuildInputs = [
               emscripten
               mozjpeg
@@ -38,7 +38,7 @@
             '';
             installPhase = ''
               mkdir -p $out
-              cp enc/*.{wasm,js} $out
+              cp -r enc $out
             '';
           };
           mozjpeg = stdenv.mkDerivation {
@@ -77,14 +77,15 @@
             dontFixup = true;
           };
           installScript = writeShellScriptBin "install.sh" ''
-            ${pkgs.coreutils}/bin/mkdir build
-            ${pkgs.coreutils}/bin/cp ${mozjpeg-squoosh}/* build/
+            ${pkgs.coreutils}/bin/rm -rf build
+            ${pkgs.coreutils}/bin/mkdir -p build
+            ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${mozjpeg-squoosh}/* build/
           '';
         };
         apps = {
           install = {
             type = "app";
-            # program = "
+            program = "${packages.installScript}/bin/install.sh";
           };
         };
       }
