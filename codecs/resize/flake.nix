@@ -34,12 +34,26 @@
       {
         packages = rec {
           default = resize-squoosh;
-          resize-squoosh = naersk'.buildPackage {
+          resize-squoosh = stdenv.mkDerivation {
             name = "squoosh-resize";
             src = ./.;
-            release = true;
-            copyLibs = true;
-            CARGO_BUILD_TARGET = target;
+            nativeBuildInputs = [
+              #naersk'
+              toolchain
+              # wasm-pack
+              wasm-bindgen-cli
+            ];
+            dontConfigure = true;
+            buildPhase = ''
+              export CARGO_HOME=$TMPDIR/.cargo
+              cargo build --target wasm32-unknown-unknown -r
+              wasm-bindgen --target web --out-dir $out ./target/wasm32-unknown-unknown/release/*.wasm
+            '';
+            dontInstall = true;
+            # installPhase = ''
+            #   mkdir -p $out
+            #   cp -r pkg/* $out
+            # '';
           };
 
           installScript = writeShellScriptBin "install.sh" ''
