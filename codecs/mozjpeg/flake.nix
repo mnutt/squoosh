@@ -22,7 +22,8 @@
       with pkgs;
       {
         packages = rec {
-          default = stdenv.mkDerivation {
+          default = mozjpeg-squoosh;
+          mozjpeg-squoosh = stdenv.mkDerivation {
             name = "mozjpeg-squoosh";
             src = ./.;
             nativeBuildInputs = [
@@ -51,18 +52,18 @@
               pkg-config
             ];
             configurePhase = ''
-                # $HOME is required for Emscripten to work.
-                # See: https://nixos.org/manual/nixpkgs/stable/#emscripten
-              	export HOME=$TMPDIR
-              	autoreconf -ifv
-                emconfigure ./configure \
-                  --disable-shared \
-                  --without-turbojpeg \
-                  --without-simd \
-                  --without-arith-enc \
-                  --without-arith-dec \
-                  --with-build-date=squoosh \
-                  --prefix=$out
+              # $HOME is required for Emscripten to work.
+              # See: https://nixos.org/manual/nixpkgs/stable/#emscripten
+            	export HOME=$TMPDIR
+            	autoreconf -ifv
+              emconfigure ./configure \
+                --disable-shared \
+                --without-turbojpeg \
+                --without-simd \
+                --without-arith-enc \
+                --without-arith-dec \
+                --with-build-date=squoosh \
+                --prefix=$out
             '';
             buildPhase = ''
               export HOME=$TMPDIR
@@ -75,18 +76,16 @@
             '';
             dontFixup = true;
           };
-        };
-        devShells.default = pkgs.mkShell {
-          packages = [
-            autoconf
-            automake
-            libtool
-            emscripten
-            pkg-config
-          ];
-          shellHook = ''
-            echo "Path to MozJPEG: ${mozjpeg-src}"
+          installScript = writeShellScriptBin "install.sh" ''
+            ${pkgs.coreutils}/bin/mkdir build
+            ${pkgs.coreutils}/bin/cp ${mozjpeg-squoosh}/* build/
           '';
+        };
+        apps = {
+          install = {
+            type = "app";
+            # program = "
+          };
         };
       }
     );
