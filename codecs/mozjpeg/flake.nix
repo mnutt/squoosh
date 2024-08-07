@@ -33,7 +33,7 @@
         '';
         installPhase = ''
           mkdir -p $out
-          # cp 
+          cp enc/*.{wasm,js} $out
         '';
       };
       mozjpeg = stdenv.mkDerivation {
@@ -62,10 +62,12 @@
         '';
         buildPhase = ''
         	export HOME=$TMPDIR
-        	emmake make V=1 -j$(nproc) --trace libjpeg.la
+        	emmake make V=1 -j$(nproc) --trace 
         '';
         installPhase = ''
-          make install-includeHEADERS install-libLTLIBRARIES
+          make install
+          cp *.h $out/include
+          cp rdswitch.o $out/lib
         '';
         dontFixup = true;
 

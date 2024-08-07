@@ -20,5 +20,6 @@ $(filter dec/%,$(OUT_JS)): dec/mozjpeg_dec.cpp
 		-s ENVIRONMENT=$(ENVIRONMENT) \
 		-s EXPORT_ES6=1 \
 		-o $@ \
-		-ljpeg \
+		${MOZJPEG}/lib/libjpeg.a \
+		${MOZJPEG}/lib/rdswitch.o \
 		$+

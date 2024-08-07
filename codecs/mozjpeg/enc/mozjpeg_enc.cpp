@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "config.h"
+#include "jconfig.h"
 #include "jpeglib.h"
 
 extern "C" {
