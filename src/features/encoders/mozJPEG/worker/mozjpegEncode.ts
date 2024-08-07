@@ -12,7 +12,7 @@
  */
 import mozjpeg_enc, {
   MozJPEGModule,
-} from 'codecs/mozjpeg/build/enc/mozjpeg_enc';
+} from 'codecs/mozjpeg/wasm_build/enc/mozjpeg_enc';
 import { EncodeOptions } from '../shared/meta';
 import { initEmscriptenModule } from 'features/worker-utils';
 

@@ -25,7 +25,13 @@
           default = mozjpeg-squoosh;
           mozjpeg-squoosh = stdenv.mkDerivation {
             name = "mozjpeg-squoosh";
-            src = lib.cleanSource ./.;
+            # Only copy files that are actually relevant to avoid unnecessary
+            # cache invalidations.
+            src = runCommand "src" { } ''
+              mkdir $out
+              cp -r ${./.}/enc $out/
+              cp ${./.}/Makefile $out/
+            '';
             nativeBuildInputs = [
               emscripten
               mozjpeg
@@ -52,18 +58,18 @@
               pkg-config
             ];
             configurePhase = ''
-              # $HOME is required for Emscripten to work.
-              # See: https://nixos.org/manual/nixpkgs/stable/#emscripten
-            	export HOME=$TMPDIR
-            	autoreconf -ifv
-              emconfigure ./configure \
-                --disable-shared \
-                --without-turbojpeg \
-                --without-simd \
-                --without-arith-enc \
-                --without-arith-dec \
-                --with-build-date=squoosh \
-                --prefix=$out
+                # $HOME is required for Emscripten to work.
+                # See: https://nixos.org/manual/nixpkgs/stable/#emscripten
+              	export HOME=$TMPDIR
+              	autoreconf -ifv
+                emconfigure ./configure \
+                  --disable-shared \
+                  --without-turbojpeg \
+                  --without-simd \
+                  --without-arith-enc \
+                  --without-arith-dec \
+                  --with-build-date=squoosh \
+                  --prefix=$out
             '';
             buildPhase = ''
               export HOME=$TMPDIR
@@ -77,9 +83,9 @@
             dontFixup = true;
           };
           installScript = writeShellScriptBin "install.sh" ''
-            ${pkgs.coreutils}/bin/rm -rf build
-            ${pkgs.coreutils}/bin/mkdir -p build
-            ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${mozjpeg-squoosh}/* build/
+            ${pkgs.coreutils}/bin/rm -rf wasm_build
+            ${pkgs.coreutils}/bin/mkdir -p wasm_build
+            ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${mozjpeg-squoosh}/* wasm_build/
           '';
         };
         apps = {
