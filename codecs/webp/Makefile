@@ -18,6 +18,14 @@ LIBWEBP_FLAGS = -I${WEBP}/include -L${WEBP}/lib -lwebp
 
 $(OUT_JS):
 	$(LD) \
+		-O3 \
+		-flto \
+		-std=c++17 \
+		-s FILESYSTEM=0 \
+		-s PTHREAD_POOL_SIZE=navigator.hardwareConcurrency \
+		-s ALLOW_MEMORY_GROWTH=1 \
+		-s TEXTDECODER=2 \
+		-s NODEJS_CATCH_EXIT=0 -s NODEJS_CATCH_REJECTION=0 \
 		$(LIBWEBP_FLAGS) \
 		$(LDFLAGS) \
 		-lembind \
@@ -28,6 +36,14 @@ $(OUT_JS):
 
 %.o: %.cpp 
 	$(CXX) -c \
+		-O3 \
+		-flto \
+		-std=c++17 \
+		-s FILESYSTEM=0 \
+		-s PTHREAD_POOL_SIZE=navigator.hardwareConcurrency \
+		-s ALLOW_MEMORY_GROWTH=1 \
+		-s TEXTDECODER=2 \
+		-s NODEJS_CATCH_EXIT=0 -s NODEJS_CATCH_REJECTION=0 \
 		$(LIBWEBP_FLAGS) \
 		$(CXXFLAGS) \
 		-o $@ \

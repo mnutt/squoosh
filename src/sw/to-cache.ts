@@ -25,7 +25,7 @@ import * as featuresWorker from 'entry-data:../features-worker';
 
 // Decoders (some are feature detected)
 import * as avifDec from 'entry-data:codecs/avif/dec/avif_dec';
-import * as webpDec from 'entry-data:codecs/webp/dec/webp_dec';
+import * as webpDec from 'entry-data:codecs/webp/wasm_build/base/dec/webp_dec';
 
 // AVIF
 import * as avifEncMt from 'entry-data:codecs/avif/enc/avif_enc_mt';
@@ -41,8 +41,8 @@ import * as oxiMt from 'entry-data:codecs/oxipng/pkg-parallel/squoosh_oxipng';
 import * as oxi from 'entry-data:codecs/oxipng/pkg/squoosh_oxipng';
 
 // WebP
-import * as webpEncSimd from 'entry-data:codecs/webp/enc/webp_enc_simd';
-import * as webpEnc from 'entry-data:codecs/webp/enc/webp_enc';
+import * as webpEncSimd from 'entry-data:codecs/webp/wasm_build/simd/enc/webp_enc';
+import * as webpEnc from 'entry-data:codecs/webp/wasm_build/base/enc/webp_enc';
 
 // WP2
 import * as wp2EncMtSimd from 'entry-data:codecs/wp2/enc/wp2_enc_mt_simd';
