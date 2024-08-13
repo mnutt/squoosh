@@ -29,6 +29,10 @@
           rustc = toolchain;
           cargo = toolchain;
         };
+        src = ./.;
+        cargoLock = pkgs.lib.importTOML "${src}/Cargo.lock";
+        wasm-bindgen-version =
+          (pkgs.lib.lists.findFirst (x: x.name == "wasm-bindgen") null cargoLock.package).version;
       in
       with pkgs;
       {
@@ -36,18 +40,26 @@
           default = resize-squoosh;
           resize-squoosh = stdenv.mkDerivation {
             name = "squoosh-resize";
-            src = ./.;
+            inherit src;
             nativeBuildInputs = [
               #naersk'
               toolchain
+              curl
+              iconv
               # wasm-pack
-              wasm-bindgen-cli
+              # wasm-bindgen-cli
             ];
             dontConfigure = true;
+            postUnpack = ''
+              export CARGO_HOME=$TMPDIR/.cargo
+              cargo install -f wasm-bindgen-cli --version ${wasm-bindgen-version}
+            '';
             buildPhase = ''
+              runHook preBuild
               export CARGO_HOME=$TMPDIR/.cargo
               cargo build --target wasm32-unknown-unknown -r
-              wasm-bindgen --target web --out-dir $out ./target/wasm32-unknown-unknown/release/*.wasm
+              $CARGO_HOME/bin/wasm-bindgen --target web --out-dir $out ./target/wasm32-unknown-unknown/release/*.wasm
+              runHook postBuild
             '';
             dontInstall = true;
             # installPhase = ''
