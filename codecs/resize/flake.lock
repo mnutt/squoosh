@@ -73,7 +73,8 @@
       "inputs": {
         "fenix": "fenix",
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_2",
+        "wasm-bindgen": "wasm-bindgen"
       }
     },
     "rust-analyzer-src": {
@@ -106,6 +107,23 @@
         "owner": "nix-systems",
         "repo": "default",
         "type": "github"
+      }
+    },
+    "wasm-bindgen": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-ZBQyty6638OHI5UZBk79+VY3LOAO51OexUMn4AQWS3Y=",
+        "path": "/nix/store/v77iy474167bmkvc9glwhkxhi728nn88-source/nix/wasm-bindgen",
+        "type": "path"
+      },
+      "original": {
+        "path": "/nix/store/v77iy474167bmkvc9glwhkxhi728nn88-source/nix/wasm-bindgen",
+        "type": "path"
       }
     }
   },

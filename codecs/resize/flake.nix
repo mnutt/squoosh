@@ -3,6 +3,11 @@
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
     flake-utils.url = "github:numtide/flake-utils";
     fenix.url = "github:nix-community/fenix";
+    wasm-bindgen = {
+      url = "../../nix/wasm-bindgen";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
   };
   outputs =
     {
@@ -10,6 +15,7 @@
       nixpkgs,
       flake-utils,
       fenix,
+      wasm-bindgen,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -25,26 +31,10 @@
           ];
         src = ./.;
 
-        cargoLock = pkgs.lib.importTOML "${src}/Cargo.lock";
-        wasm-bindgen-version =
-          (pkgs.lib.lists.findFirst (x: x.name == "wasm-bindgen") null cargoLock.package).version;
-        wasm-bindgen-src = pkgs.fetchCrate {
-          pname = "wasm-bindgen-cli";
-          version = wasm-bindgen-version;
+        wasm-bindgen-bin = wasm-bindgen.lib.buildFromCargoLock {
+          inherit system;
+          cargoLockFile = "${src}/Cargo.lock";
           sha256 = "sha256-HTElSB76gqCpDu8S0ZJlfd/S4ftMrbwxFgJM9OXBRz8=";
-        };
-        wasm-bindgen = pkgs.rustPlatform.buildRustPackage {
-          name = "wasm-bindgen-cli";
-          buildInputs = [
-            pkgs.curl
-            pkgs.darwin.apple_sdk.frameworks.Security
-          ];
-          src = wasm-bindgen-src;
-          # cargoSha256 = "sha256-I6fsBSyqiubbMKyxXhMebKnpRZdB6bHHSB+NyrrqSnY="; 
-          cargoLock = {
-            lockFile = "${wasm-bindgen-src}/Cargo.lock";
-          };
-          doCheck = false;
         };
       in
       with pkgs;
@@ -55,18 +45,10 @@
             name = "squoosh-resize";
             inherit src;
             nativeBuildInputs = [
-              #naersk'
               toolchain
-              curl
-              iconv
-              # wasm-pack
-              wasm-bindgen
+              wasm-bindgen-bin
             ];
             dontConfigure = true;
-            # postUnpack = ''
-            #   export CARGO_HOME=$TMPDIR/.cargo
-            #   cargo install -f wasm-bindgen-cli --version ${wasm-bindgen-version}
-            # '';
             buildPhase = ''
               runHook preBuild
               export CARGO_HOME=$TMPDIR/.cargo
@@ -75,10 +57,6 @@
               runHook postBuild
             '';
             dontInstall = true;
-            # installPhase = ''
-            #   mkdir -p $out
-            #   cp -r pkg/* $out
-            # '';
           };
 
           installScript = writeShellScriptBin "install.sh" ''
