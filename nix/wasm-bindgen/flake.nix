@@ -9,38 +9,48 @@
             version,
             sha256,
           }:
+          with nixpkgs.legacyPackages.${system};
           let
-            pkgs = nixpkgs.legacyPackages.${system};
-            wasm-bindgen-src = pkgs.fetchCrate {
+            src = pkgs.fetchCrate {
               pname = "wasm-bindgen-cli";
               inherit version sha256;
             };
-          in
-          pkgs.rustPlatform.buildRustPackage {
-            name = "wasm-bindgen-cli";
-            buildInputs = [
-              pkgs.curl
-              pkgs.darwin.apple_sdk.frameworks.Security
-            ];
-            src = wasm-bindgen-src;
+
             cargoLock = {
-              lockFile = "${wasm-bindgen-src}/Cargo.lock";
+              lockFile = "${src}/Cargo.lock";
             };
+          in
+          rustPlatform.buildRustPackage {
+            name = "wasm-bindgen-cli";
+            inherit src cargoLock;
+            buildInputs = [
+              curl
+              darwin.apple_sdk.frameworks.Security
+            ];
             doCheck = false;
           };
 
         buildFromCargoLock =
           {
             system,
-            cargoLockFile,
+            cargoLock,
             sha256,
           }:
+          with nixpkgs.legacyPackages.${system};
+          assert (cargoLock.lockFile or null == null) != (cargoLock.lockFileContents or null == null);
           let
-            pkgs = nixpkgs.legacyPackages.${system};
-            cargoLock = pkgs.lib.importTOML cargoLockFile;
+            lockFileContents =
+              if cargoLock.lockFile != null then
+                builtins.readFile cargoLock.lockFile
+              else
+                cargoLock.lockFileContents;
+
+            parsedLockFile = builtins.fromTOML lockFileContents;
+
             wasm-bindgen-version =
-              (pkgs.lib.lists.findFirst (x: x.name == "wasm-bindgen") null cargoLock.package).version;
+              (lib.lists.findFirst (x: x.name == "wasm-bindgen") null parsedLockFile.package).version;
           in
+          assert wasm-bindgen-version != null;
           self.lib.build {
             inherit system sha256;
             version = wasm-bindgen-version;
