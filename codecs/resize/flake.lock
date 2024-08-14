@@ -118,11 +118,11 @@
       "locked": {
         "lastModified": 1,
         "narHash": "sha256-ZBQyty6638OHI5UZBk79+VY3LOAO51OexUMn4AQWS3Y=",
-        "path": "/nix/store/v77iy474167bmkvc9glwhkxhi728nn88-source/nix/wasm-bindgen",
+        "path": "/nix/store/qmv8wrsh9s2i7z7b5a5iak6nark83267-source/nix/wasm-bindgen",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/v77iy474167bmkvc9glwhkxhi728nn88-source/nix/wasm-bindgen",
+        "path": "/nix/store/qmv8wrsh9s2i7z7b5a5iak6nark83267-source/nix/wasm-bindgen",
         "type": "path"
       }
     }

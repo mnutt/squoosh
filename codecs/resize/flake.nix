@@ -31,9 +31,19 @@
           ];
         src = ./.;
 
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = toolchain;
+          rustc = toolchain;
+        };
+
+        cargoLockFile = "${src}/Cargo.lock";
+
+        vendor = rustPlatform.importCargoLock {
+          lockFile = cargoLockFile;
+        };
+
         wasm-bindgen-bin = wasm-bindgen.lib.buildFromCargoLock {
-          inherit system;
-          cargoLockFile = "${src}/Cargo.lock";
+          inherit system cargoLockFile;
           sha256 = "sha256-HTElSB76gqCpDu8S0ZJlfd/S4ftMrbwxFgJM9OXBRz8=";
         };
       in
@@ -52,7 +62,11 @@
             buildPhase = ''
               runHook preBuild
               export CARGO_HOME=$TMPDIR/.cargo
-              cargo build --target wasm32-unknown-unknown -r
+              cargo build \
+                --config 'source.crates-io.replace-with="vendored-sources"' \
+                --config 'source.vendored-sources.directory="${vendor}"' \
+                --offline \
+                --target ${target} -r
               wasm-bindgen --target web --out-dir $out ./target/wasm32-unknown-unknown/release/*.wasm
               runHook postBuild
             '';
