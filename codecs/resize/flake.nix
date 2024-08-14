@@ -3,16 +3,15 @@
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
     flake-utils.url = "github:numtide/flake-utils";
     wasm-bindgen = {
-      url = "../../nix/wasm-bindgen";
+      url = "path:../../nix/wasm-bindgen";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
     };
     rust-helpers = {
-      url = "../../nix/rust-helpers";
+      url = "path:../../nix/rust-helpers";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     squoosh-codec-builders = {
-      url = "../../nix/squoosh-codec-builders";
+      url = "path:../../nix/squoosh-codec-builders";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rust-helpers.follows = "rust-helpers";
       inputs.wasm-bindgen.follows = "wasm-bindgen";
@@ -24,6 +23,7 @@
       nixpkgs,
       flake-utils,
       squoosh-codec-builders,
+      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -31,10 +31,6 @@
       let
         src = ./.;
       in
-      # wasm-bindgen-bin = wasm-bindgen.lib.buildFromCargoLock {
-      #   inherit system cargoLock;
-      #   sha256 = "sha256-HTElSB76gqCpDu8S0ZJlfd/S4ftMrbwxFgJM9OXBRz8=";
-      # };
       {
         packages = rec {
           default = resize-squoosh;
@@ -44,28 +40,8 @@
             cargoLock = {
               lockFile = "${src}/Cargo.lock";
             };
+            wasmBindgenSha = "sha256-HTElSB76gqCpDu8S0ZJlfd/S4ftMrbwxFgJM9OXBRz8=";
           };
-          # resize-squoosh = stdenv.mkDerivation {
-          #   name = "squoosh-resize";
-          #   inherit src;
-          #   nativeBuildInputs = [
-          #     toolchain
-          #     wasm-bindgen-bin
-          #   ];
-          #   dontConfigure = true;
-          #   buildPhase = ''
-          #     runHook preBuild
-          #     export CARGO_HOME=$TMPDIR/.cargo
-          #     cargo build \
-          #       --config 'source.crates-io.replace-with="vendored-sources"' \
-          #       --config 'source.vendored-sources.directory="${vendoredDependencies}"' \
-          #       --offline \
-          #       --target ${target} -r
-          #     wasm-bindgen --target web --out-dir $out ./target/wasm32-unknown-unknown/release/*.wasm
-          #     runHook postBuild
-          #   '';
-          #   dontInstall = true;
-          # };
 
           installScript = writeShellScriptBin "install.sh" ''
             ${pkgs.coreutils}/bin/mkdir -p wasm_build

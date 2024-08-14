@@ -3,11 +3,11 @@
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
     fenix.url = "github:nix-community/fenix";
     wasm-bindgen = {
-      url = "../wasm-bindgen";
+      url = "path:../wasm-bindgen";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rust-helpers = {
-      url = "../rust-helpers";
+      url = "path:../rust-helpers";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
