@@ -49,7 +49,7 @@
               dontConfigure = true;
               buildPhase = ''
                 runHook preBuild
-                export CARGO_HOME=$TMPDIR/.cargo
+
                 cargo build \
                   --config 'source.crates-io.replace-with="vendored-sources"' \
                   --config 'source.vendored-sources.directory="${vendoredDependencies}"' \
