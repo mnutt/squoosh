@@ -15,7 +15,7 @@
       webp-src,
     }:
     let
-      optionSets = {
+      packageVariants = {
         base = {
           simd = false;
         };
@@ -28,10 +28,10 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        packageBuilder =
-          with pkgs;
+        inherit (pkgs) lib stdenv runCommand emscripten writeShellScriptBin cmake;
+        packageVariantBuilder =
           name:
-          { simd }:
+          { simd }@variantOptions:
           {
             "webp-squoosh-${name}" = stdenv.mkDerivation {
               name = "webp-squoosh-${name}";
@@ -105,16 +105,18 @@
             '';
           };
 
-        forEachOption = pkgs.callPackage (import ../../nix/for-each-option.nix) { };
-        packageVariants = forEachOption packageBuilder optionSets;
+        packages = lib.foldl (acc: v: acc//v) {} (lib.mapAttrsToList packageVariantBuilder packageVariants);
+
+        joinLines = lines: lib.foldl (text: line: text + line) "" lines;
+
+        globalInstallerCode = joinLines (lib.lists.map (variantName: ''
+          ${self.packages.${system}."install-${variantName}"}/bin/install.sh
+        '') (lib.attrNames packageVariants));
       in
-      with pkgs;
+
       {
-        packages = packageVariants // {
-          installScript = writeShellScriptBin "install.sh" ''
-            ${self.packages.${system}.install-base}/bin/install.sh
-            ${self.packages.${system}.install-simd}/bin/install.sh
-          '';
+        packages = packages // {
+          installScript = writeShellScriptBin "install.sh" globalInstallerCode;
         };
         apps = {
           install = {
@@ -123,5 +125,6 @@
           };
         };
       }
+
     );
 }
