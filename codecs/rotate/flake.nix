@@ -18,15 +18,14 @@
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) callPackage writeShellScriptBin;
         
-        squooshCodecBuilders = callPackage (import ../../nix/squoosh-codec-builders) {fenix = fenix.packages.${system};};
-        inherit (squooshCodecBuilders) buildSquooshCodecRust;
+        buildSquooshRustCodec= callPackage (import ../../nix/squoosh-rust-builder) {fenix = fenix.packages.${system};};
 
         src = ./.;
       in
       {
         packages = rec {
           default = rotate-squoosh;
-          rotate-squoosh = buildSquooshCodecRust {
+          rotate-squoosh = buildSquooshRustCodec {
             name = "rotate-squoosh";
             inherit src;
             cargoLock = {
