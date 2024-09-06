@@ -19,10 +19,11 @@
         inherit (pkgs) callPackage writeShellScriptBin;
         
         buildSquooshRustCodec= callPackage (import ../../nix/squoosh-rust-builder) {fenix = fenix.packages.${system};};
+        mkInstallable = callPackage (import ../../nix/mk-installable) {};
 
         src = ./.;
       in
-      {
+      mkInstallable {
         packages = rec {
           default = rotate-squoosh;
           rotate-squoosh = buildSquooshRustCodec {
@@ -32,17 +33,6 @@
               lockFile = "${src}/Cargo.lock";
             };
             wasmBindgen = null;
-          };
-
-          installScript = writeShellScriptBin "install.sh" ''
-            ${pkgs.coreutils}/bin/mkdir -p wasm_build
-            ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${self.packages.${system}.rotate-squoosh}/* wasm_build/
-          '';
-        };
-        apps = {
-          install = {
-            type = "app";
-            program = "${self.packages.${system}.installScript}/bin/install.sh";
           };
         };
       }

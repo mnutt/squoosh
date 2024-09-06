@@ -15,13 +15,14 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) callPackage writeShellScriptBin;
+        inherit (pkgs) callPackage;
 
         buildSquooshRustCodec= callPackage (import ../../nix/squoosh-rust-builder) {fenix = fenix.packages.${system};};
+        mkInstallable = callPackage (import ../../nix/mk-installable) {};
 
         src = ./.;
       in
-      {
+      mkInstallable {
         packages = rec {
           default = resize-squoosh;
           resize-squoosh = buildSquooshRustCodec {
@@ -33,17 +34,6 @@
             wasmBindgen = {
               sha256 = "sha256-HTElSB76gqCpDu8S0ZJlfd/S4ftMrbwxFgJM9OXBRz8=";
             };
-          };
-
-          installScript = writeShellScriptBin "install.sh" ''
-            ${pkgs.coreutils}/bin/mkdir -p wasm_build
-            ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${self.packages.${system}.resize-squoosh}/* wasm_build/
-          '';
-        };
-        apps = {
-          install = {
-            type = "app";
-            program = "${self.packages.${system}.installScript}/bin/install.sh";
           };
         };
       }
