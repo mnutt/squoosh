@@ -29,11 +29,7 @@ rec {
     };
 
   buildFromCargoLock =
-    {
-      system,
-      cargoLock,
-      sha256,
-    }:
+    { cargoLock, sha256 }:
     assert (cargoLock.lockFile or null == null) != (cargoLock.lockFileContents or null == null);
     let
       lockFileContents =
@@ -49,7 +45,7 @@ rec {
     in
     assert wasm-bindgen-version != null;
     build {
-      inherit system sha256;
+      inherit sha256;
       version = wasm-bindgen-version;
     };
 }

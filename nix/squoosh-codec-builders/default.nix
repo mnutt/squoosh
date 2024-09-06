@@ -1,9 +1,14 @@
 {
+  pkgs,
   fenix,
-  wasm-bindgen,
-  rust-helpers,
+  wasm-bindgen ? pkgs.callPackage (import ../wasm-bindgen) { },
+  rust-helpers ? pkgs.callPackage (import ../rust-helpers) { inherit fenix; },
   stdenv,
 }:
+let
+  inherit (rust-helpers) buildRustPackage;
+in
+
 {
   buildSquooshCodecRust =
     {
@@ -18,20 +23,23 @@
       ...
     }@args:
     let
-      codecBuild = rust-helpers.lib.buildRustPackage {
+      codecBuild = buildRustPackage {
         inherit src cargoLock;
         name = "${name}-codec";
         target = "wasm32-unknown-unknown";
       };
 
-      wasm-bindgen-bin = wasm-bindgen.lib.buildFromCargoLock {
+      wasm-bindgen-bin = wasm-bindgen.buildFromCargoLock {
         inherit cargoLock;
         sha256 = wasmBindgen.sha256;
       };
     in
     if wasmBindgen != null then
       stdenv.mkDerivation (
-        (removeAttrs args [ "cargoLock" ])
+        (removeAttrs args [
+          "cargoLock"
+          "wasmBindgen"
+        ])
         // {
           inherit codecBuild;
           dontConfigure = true;
