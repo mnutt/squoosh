@@ -18,8 +18,8 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        inherit (pkgs) stdenv runCommand writeShellScriptBin;
       in
-      with pkgs;
       rec {
         packages = rec {
           default = mozjpeg-squoosh;
@@ -33,8 +33,8 @@
               cp ${./.}/Makefile $out/
             '';
             nativeBuildInputs = [
-              emscripten
-              mozjpeg
+              pkgs.emscripten
+              pkgs.mozjpeg
             ];
             MOZJPEG = mozjpeg;
             dontConfigure = true;
@@ -51,11 +51,11 @@
             name = "mozjpeg";
             src = mozjpeg-src;
             nativeBuildInputs = [
-              autoconf
-              automake
-              libtool
-              emscripten
-              pkg-config
+              pkgs.autoconf
+              pkgs.automake
+              pkgs.libtool
+              pkgs.emscripten
+              pkgs.pkg-config
             ];
             configurePhase = ''
                 # $HOME is required for Emscripten to work.
