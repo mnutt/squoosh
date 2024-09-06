@@ -3,6 +3,7 @@
   fenix,
   wasm-bindgen ? pkgs.callPackage (import ../wasm-bindgen) { },
   rust-helpers ? pkgs.callPackage (import ../rust-helpers) { inherit fenix; },
+  binaryen,
   stdenv,
 }:
 let
@@ -43,7 +44,7 @@ in
         // {
           inherit codecBuild;
           dontConfigure = true;
-          nativeBuildInputs = (args.nativeBuildInputs or [ ]) ++ [ wasm-bindgen-bin ];
+          nativeBuildInputs = [ wasm-bindgen-bin ];
           buildPhase = ''
             runHook preBuild
 
@@ -55,5 +56,27 @@ in
         }
       )
     else
-      codecBuild;
+      stdenv.mkDerivation (
+        (removeAttrs args [
+          "cargoLock"
+          "wasmBindgen"
+        ])
+        // {
+          inherit codecBuild;
+          dontConfigure = true;
+          nativeBuildInputs = [ binaryen ];
+          buildPhase = ''
+            runHook preBuild
+
+            wasm-opt -O3 --strip -o optimized.wasm $codecBuild/*.wasm
+
+            runHook postBuild
+          '';
+          installPhase = ''
+            mkdir -p $out
+            cp optimized.wasm $out
+          '';
+        }
+      );
+
 }
