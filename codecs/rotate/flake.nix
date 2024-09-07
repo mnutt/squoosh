@@ -16,7 +16,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) callPackage writeShellScriptBin;
+        inherit (pkgs) callPackage;
         
         buildSquooshRustCodec= callPackage (import ../../nix/squoosh-rust-builder) {fenix = fenix.packages.${system};};
         mkInstallable = callPackage (import ../../nix/mk-installable) {};

@@ -18,35 +18,24 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) stdenv runCommand writeShellScriptBin;
+        inherit (pkgs) callPackage stdenv;
+
+        buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
+        mkInstallable = callPackage (import ../../nix/mk-installable) {};
+        
       in
-      rec {
+      mkInstallable {
         packages = rec {
+
           default = mozjpeg-squoosh;
-          mozjpeg-squoosh = stdenv.mkDerivation {
+          mozjpeg-squoosh = buildSquooshCppCodec {
             name = "mozjpeg-squoosh";
-            # Only copy files that are actually relevant to avoid unnecessary
-            # cache invalidations.
-            src = runCommand "src" { } ''
-              mkdir $out
-              cp -r ${./.}/enc $out/
-              cp ${./.}/Makefile $out/
-            '';
-            nativeBuildInputs = [
-              pkgs.emscripten
-              pkgs.mozjpeg
-            ];
+            src = ./.;
             MOZJPEG = mozjpeg;
             dontConfigure = true;
-            buildPhase = ''
-              export HOME=$TMPDIR
-              emmake make -j$(nproc)
-            '';
-            installPhase = ''
-              mkdir -p $out
-              cp -r enc $out
-            '';
+            decoder = null;
           };
+
           mozjpeg = stdenv.mkDerivation {
             name = "mozjpeg";
             src = mozjpeg-src;
@@ -81,17 +70,6 @@
               cp rdswitch.o $out/lib
             '';
             dontFixup = true;
-          };
-          installScript = writeShellScriptBin "install.sh" ''
-            ${pkgs.coreutils}/bin/rm -rf wasm_build
-            ${pkgs.coreutils}/bin/mkdir -p wasm_build
-            ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${mozjpeg-squoosh}/* wasm_build/
-          '';
-        };
-        apps = {
-          install = {
-            type = "app";
-            program = "${packages.installScript}/bin/install.sh";
           };
         };
       }
