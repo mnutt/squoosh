@@ -16,7 +16,7 @@
     }:
     let
 
-      packageVariants = {
+      variantOptions = {
         base = {
           simd = false;
         };
@@ -30,19 +30,19 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) lib stdenv runCommand emscripten writeShellScriptBin cmake callPackage;
+        inherit (pkgs) lib stdenv callPackage;
         buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
         mkInstallable = callPackage (import ../../nix/mk-installable) {};
 
-        packageVariantBuilder =
+        builder =
           name:
-          { simd }@variantOptions:
+          { simd }:
           {
-            "webp-squoosh-${name}" = buildSquooshCppCodec {
+            "webp-squoosh" = buildSquooshCppCodec {
               name = "webp-squoosh-${name}";
               src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?" "dec(/.+)?"]; 
               nativeBuildInputs = [
-                emscripten
+                pkgs.emscripten
                 self.packages.${system}."webp-${name}"
               ];
               WEBP = self.packages.${system}."webp-${name}";
@@ -56,12 +56,12 @@
                 cp -r enc dec $out
               '';
             };
-            "webp-${name}" = stdenv.mkDerivation {
+            "webp" = stdenv.mkDerivation {
               name = "webp-${name}";
               src = webp-src;
               nativeBuildInputs = [
-                emscripten
-                cmake
+                pkgs.emscripten
+                pkgs.cmake
               ];
               configurePhase = ''
                   # $HOME is required for Emscripten to work.
@@ -97,10 +97,31 @@
             };
           };
 
-        packages = lib.foldl (acc: v: acc//v) {} (lib.mapAttrsToList packageVariantBuilder packageVariants);
+        suffixAttrNames = suffix: attrs:
+          lib.mapAttrs'
+            (name: val:
+              lib.nameValuePair
+              "${name}${suffix}"
+              val)
+            attrs;
+        forAllVariants = 
+          {builder, variants}: 
+            lib.lists.foldl
+              (acc: v: acc//v)
+              {}
+              (lib.mapAttrsToList
+                (variantName: value: 
+                  suffixAttrNames "-${variantName}" (builder variantName value))
+                variants
+              );
+
+        packageVariants = forAllVariants {
+          inherit builder;
+          variants = variantOptions;
+        };
 
         defaultPackage = let
-          variants = lib.mapAttrs (name: opts: packages."webp-squoosh-${name}") packageVariants;
+          variants = lib.mapAttrs (name: opts: packageVariants."webp-squoosh-${name}") variantOptions;
           copyCommands = lib.concatLines (lib.mapAttrsToList (name: path: "cp -r ${path} $out/${name}") variants);
         in
         stdenv.mkDerivation {
@@ -114,7 +135,7 @@
       in
 
       mkInstallable {
-        packages = packages // {default = defaultPackage;};
+        packages = packageVariants // {default = defaultPackage;};
       }
     );
 }
