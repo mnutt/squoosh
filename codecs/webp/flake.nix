@@ -15,6 +15,7 @@
       webp-src,
     }:
     let
+
       packageVariants = {
         base = {
           simd = false;
@@ -23,6 +24,7 @@
           simd = true;
         };
       };
+
     in
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -93,34 +95,26 @@
               '';
               dontFixup = true;
             };
-            "install-${name}" = writeShellScriptBin "install.sh" ''
-              ${pkgs.coreutils}/bin/mkdir -p wasm_build/${name}
-              ${pkgs.rsync}/bin/rsync --chmod=u+w -r ${
-                self.packages.${system}."webp-squoosh-${name}"
-              }/* wasm_build/${name}
-            '';
           };
 
         packages = lib.foldl (acc: v: acc//v) {} (lib.mapAttrsToList packageVariantBuilder packageVariants);
 
-        joinLines = lines: lib.foldl (text: line: text + line) "" lines;
-
-        globalInstallerCode = joinLines (lib.lists.map (variantName: ''
-          ${self.packages.${system}."install-${variantName}"}/bin/install.sh
-        '') (lib.attrNames packageVariants));
+        defaultPackage = let
+          variants = lib.mapAttrs (name: opts: packages."webp-squoosh-${name}") packageVariants;
+          copyCommands = lib.concatLines (lib.mapAttrsToList (name: path: "cp -r ${path} $out/${name}") variants);
+        in
+        stdenv.mkDerivation {
+          name = "all-variants";
+          phases = ["buildPhase"];
+          buildPhase = ''
+            mkdir -p $out;
+            ${copyCommands}
+          '';
+        };
       in
 
-      {
-        packages = packages // {
-          installScript = writeShellScriptBin "install.sh" globalInstallerCode;
-        };
-        apps = {
-          install = {
-            type = "app";
-            program = "${self.packages.${system}.installScript}/bin/install.sh";
-          };
-        };
+      mkInstallable {
+        packages = packages // {default = defaultPackage;};
       }
-
     );
 }
