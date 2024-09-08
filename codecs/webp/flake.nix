@@ -19,18 +19,18 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) lib stdenv callPackage;
-        buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
-        squooshHelpers = callPackage (import ../../nix/squoosh-helpers) {};
+        buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) { };
+        squooshHelpers = callPackage (import ../../nix/squoosh-helpers) { };
         inherit (squooshHelpers) mkInstallable forAllVariants;
 
-      variants = {
-        base = {
-          simd = false;
+        variants = {
+          base = {
+            simd = false;
+          };
+          simd = {
+            simd = true;
+          };
         };
-        simd = {
-          simd = true;
-        };
-      };
 
         builder =
           variantName:
@@ -38,7 +38,11 @@
           {
             "webp-squoosh" = buildSquooshCppCodec {
               name = "webp-squoosh-${variantName}";
-              src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?" "dec(/.+)?"]; 
+              src = lib.sources.sourceByRegex ./. [
+                "Makefile"
+                "enc(/.+)?"
+                "dec(/.+)?"
+              ];
               nativeBuildInputs = [
                 pkgs.emscripten
                 self.packages.${system}."webp-${variantName}"
@@ -95,25 +99,30 @@
             };
           };
 
-        packageVariants = forAllVariants {
-          inherit builder variants;
-        };
+        packageVariants = forAllVariants { inherit builder variants; };
 
-        defaultPackage = let
-          copyAllCodecs = lib.concatLines (lib.mapAttrsToList (name: _: "cp -r ${packageVariants."webp-squoosh-${name}"} $out/${name}") variants);
-        in
-        stdenv.mkDerivation {
-          name = "all-variants";
-          phases = ["buildPhase"];
-          buildPhase = ''
-            mkdir -p $out;
-            ${copyAllCodecs}
-          '';
-        };
+        defaultPackage =
+          let
+            copyAllCodecs = lib.concatLines (
+              lib.mapAttrsToList (
+                name: _: "cp -r ${packageVariants."webp-squoosh-${name}"} $out/${name}"
+              ) variants
+            );
+          in
+          stdenv.mkDerivation {
+            name = "all-variants";
+            phases = [ "buildPhase" ];
+            buildPhase = ''
+              mkdir -p $out;
+              ${copyAllCodecs}
+            '';
+          };
       in
 
       mkInstallable {
-        packages = packageVariants // {default = defaultPackage;};
+        packages = packageVariants // {
+          default = defaultPackage;
+        };
       }
     );
 }

@@ -1,4 +1,3 @@
-
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/24.05";
@@ -10,18 +9,23 @@
       self,
       nixpkgs,
       flake-utils,
-      fenix
+      fenix,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         inherit (pkgs) callPackage lib;
-        
-        buildSquooshRustCodec= callPackage (import ../../nix/squoosh-rust-builder) {fenix = fenix.packages.${system};};
-        mkInstallable = callPackage (import ../../nix/mk-installable) {};
 
-        src = lib.sources.sourceByRegex ./. ["Cargo\.*" ".*\.rs"];
+        buildSquooshRustCodec = callPackage (import ../../nix/squoosh-rust-builder) {
+          fenix = fenix.packages.${system};
+        };
+        mkInstallable = callPackage (import ../../nix/mk-installable) { };
+
+        src = lib.sources.sourceByRegex ./. [
+          "Cargo\.*"
+          ".*\.rs"
+        ];
       in
       mkInstallable {
         packages = rec {
