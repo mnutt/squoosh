@@ -14,9 +14,16 @@
       flake-utils,
       webp-src,
     }:
-    let
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        inherit (pkgs) lib stdenv callPackage;
+        buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
+        squooshHelpers = callPackage (import ../../nix/squoosh-helpers) {};
+        inherit (squooshHelpers) mkInstallable forAllVariants;
 
-      variantOptions = {
+      variants = {
         base = {
           simd = false;
         };
@@ -25,27 +32,18 @@
         };
       };
 
-    in
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) lib stdenv callPackage;
-        buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
-        mkInstallable = callPackage (import ../../nix/mk-installable) {};
-
         builder =
-          name:
+          variantName:
           { simd }:
           {
             "webp-squoosh" = buildSquooshCppCodec {
-              name = "webp-squoosh-${name}";
+              name = "webp-squoosh-${variantName}";
               src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?" "dec(/.+)?"]; 
               nativeBuildInputs = [
                 pkgs.emscripten
-                self.packages.${system}."webp-${name}"
+                self.packages.${system}."webp-${variantName}"
               ];
-              WEBP = self.packages.${system}."webp-${name}";
+              WEBP = self.packages.${system}."webp-${variantName}";
               dontConfigure = true;
               buildPhase = ''
                 export HOME=$TMPDIR
@@ -57,7 +55,7 @@
               '';
             };
             "webp" = stdenv.mkDerivation {
-              name = "webp-${name}";
+              name = "webp-${variantName}";
               src = webp-src;
               nativeBuildInputs = [
                 pkgs.emscripten
@@ -97,39 +95,19 @@
             };
           };
 
-        suffixAttrNames = suffix: attrs:
-          lib.mapAttrs'
-            (name: val:
-              lib.nameValuePair
-              "${name}${suffix}"
-              val)
-            attrs;
-        forAllVariants = 
-          {builder, variants}: 
-            lib.lists.foldl
-              (acc: v: acc//v)
-              {}
-              (lib.mapAttrsToList
-                (variantName: value: 
-                  suffixAttrNames "-${variantName}" (builder variantName value))
-                variants
-              );
-
         packageVariants = forAllVariants {
-          inherit builder;
-          variants = variantOptions;
+          inherit builder variants;
         };
 
         defaultPackage = let
-          variants = lib.mapAttrs (name: opts: packageVariants."webp-squoosh-${name}") variantOptions;
-          copyCommands = lib.concatLines (lib.mapAttrsToList (name: path: "cp -r ${path} $out/${name}") variants);
+          copyAllCodecs = lib.concatLines (lib.mapAttrsToList (name: _: "cp -r ${packageVariants."webp-squoosh-${name}"} $out/${name}") variants);
         in
         stdenv.mkDerivation {
           name = "all-variants";
           phases = ["buildPhase"];
           buildPhase = ''
             mkdir -p $out;
-            ${copyCommands}
+            ${copyAllCodecs}
           '';
         };
       in

@@ -21,17 +21,18 @@
         inherit (pkgs) callPackage stdenv lib;
 
         buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
-        mkInstallable = callPackage (import ../../nix/mk-installable) {};
-        
-      in
-      mkInstallable {
-        packages = rec {
+        squooshHelpers = callPackage (import ../../nix/squoosh-helpers) {};
+        inherit (squooshHelpers) mkInstallable forAllVariants;
 
-          default = mozjpeg-squoosh;
+        variants = {
+          base = {};
+        };
+
+        builder = variantName: opts: {
           mozjpeg-squoosh = buildSquooshCppCodec {
             name = "mozjpeg-squoosh";
             src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?"];
-            MOZJPEG = mozjpeg;
+            MOZJPEG = self.packages.${system}."mozjpeg-${variantName}";
 
             dontConfigure = true;
             decoder = null;
@@ -72,7 +73,13 @@
             '';
             dontFixup = true;
           };
-        };
+        };        
+
+        packageVariants = forAllVariants {inherit builder variants;};
+      in
+
+      mkInstallable {
+        packages = packageVariants // {default = packageVariants."mozjpeg-squoosh-base";};
       }
     );
 }
