@@ -5,7 +5,6 @@
 }:
 {
   name,
-  src,
   nativeBuildInputs ? [ ],
   encoder ? "enc",
   decoder ? "dec",
@@ -16,7 +15,7 @@ stdenv.mkDerivation (
   final:
   args
   // {
-    inherit name src;
+    inherit name;
     nativeBuildInputs = [ pkgs.emscripten ] ++ nativeBuildInputs;
     buildPhase = ''
       export HOME=$TMPDIR

@@ -15,12 +15,12 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) callPackage;
+        inherit (pkgs) callPackage lib;
 
         buildSquooshRustCodec= callPackage (import ../../nix/squoosh-rust-builder) {fenix = fenix.packages.${system};};
         mkInstallable = callPackage (import ../../nix/mk-installable) {};
 
-        src = ./.;
+        src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?"];
       in
       mkInstallable {
         packages = rec {

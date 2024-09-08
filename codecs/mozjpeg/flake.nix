@@ -18,7 +18,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) callPackage stdenv;
+        inherit (pkgs) callPackage stdenv lib;
 
         buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
         mkInstallable = callPackage (import ../../nix/mk-installable) {};
@@ -30,8 +30,9 @@
           default = mozjpeg-squoosh;
           mozjpeg-squoosh = buildSquooshCppCodec {
             name = "mozjpeg-squoosh";
-            src = ./.;
+            src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?"];
             MOZJPEG = mozjpeg;
+
             dontConfigure = true;
             decoder = null;
           };

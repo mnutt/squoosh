@@ -28,21 +28,17 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (pkgs) lib stdenv runCommand emscripten writeShellScriptBin cmake;
+        inherit (pkgs) lib stdenv runCommand emscripten writeShellScriptBin cmake callPackage;
+        buildSquooshCppCodec = callPackage (import ../../nix/squoosh-cxx-builder) {};
+        mkInstallable = callPackage (import ../../nix/mk-installable) {};
+
         packageVariantBuilder =
           name:
           { simd }@variantOptions:
           {
-            "webp-squoosh-${name}" = stdenv.mkDerivation {
+            "webp-squoosh-${name}" = buildSquooshCppCodec {
               name = "webp-squoosh-${name}";
-              # Only copy files that are actually relevant to avoid unnecessary
-              # cache invalidations.
-              src = runCommand "src" { } ''
-                mkdir $out
-                cp -r ${./.}/enc $out/
-                cp -r ${./.}/dec $out/
-                cp ${./.}/Makefile $out/
-              '';
+              src = lib.sources.sourceByRegex ./. ["Makefile" "enc(/.+)?" "dec(/.+)?"]; 
               nativeBuildInputs = [
                 emscripten
                 self.packages.${system}."webp-${name}"
