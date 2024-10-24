@@ -468,17 +468,14 @@ export const codecs = {
       await oxipngPromise;
       return {
         encode: (
-          buffer: Uint8ClampedArray | ArrayBuffer,
+          data: Uint8ClampedArray | ArrayBuffer,
           width: number,
           height: number,
           opts: { level: number },
         ) => {
-          const simplePng = pngEncDec.encode(
-            new Uint8Array(buffer),
-            width,
-            height,
-          );
-          return oxipng.optimise(simplePng, opts.level, false);
+          const buffer =
+            data instanceof ArrayBuffer ? new Uint8ClampedArray(data) : data;
+          return oxipng.optimise(buffer, width, height, opts.level, false);
         },
       };
     },
