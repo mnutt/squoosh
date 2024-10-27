@@ -7,4 +7,4 @@ then
 fi
 IMG_NAME=squoosh-rust$IMG_SUFFIX
 docker build --platform=linux/amd64 -t $IMG_NAME --build-arg RUST_IMG - < ../rust.Dockerfile
-docker run -it --rm -v $PWD:/src $IMG_NAME "$@"
+docker run --platform=linux/amd64 -it --rm -v $PWD:/src $IMG_NAME "$@"
