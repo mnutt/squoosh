@@ -1,4 +1,4 @@
-ARG RUST_IMG=rust:1.47
+ARG RUST_IMG=rust:1.75
 
 FROM emscripten/emsdk:2.0.8 AS wasm-tools
 WORKDIR /opt/wasm-tools
