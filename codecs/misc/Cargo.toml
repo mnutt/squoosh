@@ -1,0 +1,19 @@
+[package]
+name = "squoosh-misc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O", "--no-validation"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+image = { version = "0.25.4", default-features = false, features = ["rayon", "bmp", "dds", "exr", "ff", "gif", "hdr", "ico", "pnm", "tga", "tiff"] }
+wasm-bindgen = "0.2.74"
+
+[profile.release]
+lto = true
+opt-level = "s"

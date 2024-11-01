@@ -113,6 +113,20 @@ interface OxiPngEncodeOptions {
   level: number;
 }
 
+// GIF
+import * as gifEncDec from '../../codecs/gif/pkg/squoosh_gif.js';
+import gifEncDecWasm from 'asset-url:../../codecs/gif/pkg/squoosh_gif_bg.wasm';
+const gifEncDecPromise = gifEncDec.default(
+  fsp.readFile(pathify(gifEncDecWasm)),
+);
+
+// Misc decoders
+import * as miscDec from '../../codecs/misc/pkg/squoosh_misc.js';
+import miscDecWasm from 'asset-url:../../codecs/misc/pkg/squoosh_misc_bg.wasm';
+const miscDecPromise = miscDec.default({
+  module_or_path: fsp.readFile(pathify(miscDecWasm)),
+});
+
 // Resize
 import * as resize from '../../codecs/resize/pkg/squoosh_resize.js';
 import resizeWasm from 'asset-url:../../codecs/resize/pkg/squoosh_resize_bg.wasm';
@@ -277,6 +291,135 @@ export const preprocessors = {
     },
     defaultOptions: {
       numRotations: 0,
+    },
+  },
+} as const;
+
+export const decoders = {
+  mozjpeg: {
+    name: 'MozJPEG',
+    extension: 'jpg',
+    detectors: [/^\xFF\xD8\xFF/],
+    dec: () =>
+      instantiateEmscriptenWasm(mozDec as DecodeModuleFactory, mozDecWasm),
+  },
+  webp: {
+    name: 'WebP',
+    extension: 'webp',
+    detectors: [/^RIFF....WEBPVP8[LX ]/s],
+    dec: () =>
+      instantiateEmscriptenWasm(webpDec as DecodeModuleFactory, webpDecWasm),
+  },
+  avif: {
+    name: 'AVIF',
+    extension: 'avif',
+    detectors: [/^\x00\x00\x00 ftypavif\x00\x00\x00\x00/],
+    dec: () =>
+      instantiateEmscriptenWasm(avifDec as DecodeModuleFactory, avifDecWasm),
+  },
+  jxl: {
+    name: 'JPEG-XL',
+    extension: 'jxl',
+    detectors: [/^\xff\x0a/],
+    dec: () =>
+      instantiateEmscriptenWasm(jxlDec as DecodeModuleFactory, jxlDecWasm),
+  },
+  wp2: {
+    name: 'WebP2',
+    extension: 'wp2',
+    detectors: [/^\xF4\xFF\x6F/],
+    dec: () =>
+      instantiateEmscriptenWasm(wp2Dec as DecodeModuleFactory, wp2DecWasm),
+  },
+  oxipng: {
+    name: 'OxiPNG',
+    extension: 'png',
+    detectors: [/^\x89PNG\x0D\x0A\x1A\x0A/],
+    dec: async () => {
+      await pngEncDecPromise;
+      return { decode: pngEncDec.decode };
+    },
+  },
+  // handled by misc decoder
+  bmp: {
+    name: 'BMP',
+    extension: 'bmp',
+    detectors: [/^BM/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  dds: {
+    name: 'DDS',
+    extension: 'dds',
+    detectors: [/^DDS/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  gif: {
+    name: 'GIF',
+    extension: 'gif',
+    detectors: [/^GIF8[79]/],
+    dec: async () => {
+      await gifEncDecPromise;
+      return { decode: gifEncDec.decode };
+    },
+  },
+  hdr: {
+    name: 'HDR',
+    extension: 'hdr',
+    detectors: [/^#?RADIANCE/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  ico: {
+    name: 'ICO',
+    extension: 'ico',
+    detectors: [/^\x00\x00\x01\x00/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  exr: {
+    name: 'OpenEXR',
+    extension: 'exr',
+    detectors: [/^(\x76\x2f\x31\x01|\x01\x31\x2f\x76)/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  pnm: {
+    name: 'PNM',
+    extension: 'pnm',
+    detectors: [/^(P[1-7])/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  tga: {
+    name: 'TGA',
+    extension: 'tga',
+    detectors: [/^(TRUEVISION|FORM.TGA)/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
+    },
+  },
+  tiff: {
+    name: 'TIFF',
+    extension: 'tiff',
+    detectors: [/^(MM\x00\x2a|II\x2a\x00)/],
+    dec: async () => {
+      await miscDecPromise;
+      return { decode: miscDec.decode };
     },
   },
 } as const;

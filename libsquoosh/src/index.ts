@@ -3,6 +3,7 @@ import { isMainThread } from 'worker_threads';
 import {
   AvifEncodeOptions,
   codecs as encoders,
+  decoders,
   JxlEncodeOptions,
   MozJPEGEncodeOptions,
   OxiPngEncodeOptions,
@@ -17,8 +18,9 @@ import WorkerPool from './worker_pool.js';
 import { autoOptimize } from './auto-optimizer.js';
 import type ImageData from './image_data';
 
-export { ImagePool, encoders, preprocessors };
+export { ImagePool, encoders, decoders, preprocessors };
 type EncoderKey = keyof typeof encoders;
+type DecoderKey = keyof typeof decoders;
 type PreprocessorKey = keyof typeof preprocessors;
 
 type PreprocessOptions = {
@@ -52,14 +54,14 @@ async function decodeFile({
   const firstChunkString = Array.from(firstChunk)
     .map((v) => String.fromCodePoint(v))
     .join('');
-  const key = Object.entries(encoders).find(([_name, { detectors }]) =>
+  const key = Object.entries(decoders).find(([_name, { detectors }]) =>
     detectors.some((detector) => detector.exec(firstChunkString)),
-  )?.[0] as EncoderKey | undefined;
+  )?.[0] as DecoderKey | undefined;
   if (!key) {
     throw Error(`File has an unsupported format`);
   }
-  const encoder = encoders[key];
-  const mod = await encoder.dec();
+  const decoder = decoders[key];
+  const mod = await decoder.dec();
   const rgba = mod.decode(array);
   return {
     bitmap: rgba,

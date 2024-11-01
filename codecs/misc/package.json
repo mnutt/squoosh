@@ -1,0 +1,6 @@
+{
+  "name": "misc",
+  "scripts": {
+    "build": "../build-rust.sh"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "squoosh-misc",
+  "version": "0.1.0",
+  "files": [
+    "squoosh_misc_bg.wasm",
+    "squoosh_misc.js",
+    "squoosh_misc.d.ts"
+  ],
+  "module": "squoosh_misc.js",
+  "types": "squoosh_misc.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

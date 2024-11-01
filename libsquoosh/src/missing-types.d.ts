@@ -13,6 +13,16 @@ declare module 'asset-url:../../codecs/png/pkg/squoosh_png_bg.wasm' {
   export default value;
 }
 
+declare module 'asset-url:../../codecs/gif/pkg/squoosh_gif_bg.wasm' {
+  const value: string;
+  export default value;
+}
+
+declare module 'asset-url:../../codecs/misc/pkg/squoosh_misc_bg.wasm' {
+  const value: string;
+  export default value;
+}
+
 declare module 'asset-url:../../codecs/oxipng/pkg/squoosh_oxipng_bg.wasm' {
   const value: string;
   export default value;
