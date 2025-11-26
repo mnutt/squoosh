@@ -1,6 +1,6 @@
 {
   "name": "@movable/squoosh-lib",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "description": "A Node library for Squoosh",
   "public": true,
   "main": "./build/index.js",
@@ -20,7 +20,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": " ^12.5.0 || ^14.0.0 || ^16.0.0 "
+    "node": " ^12.5.0 || ^14.0.0 || ^16.0.0 || ^20.0.0"
   },
   "dependencies": {
     "wasm-feature-detect": "^1.8.0",
