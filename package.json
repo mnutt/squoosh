@@ -46,7 +46,7 @@
     "rollup": "^2.38.0",
     "serve": "^11.3.2",
     "typescript": "^4.4.4",
-    "wasm-feature-detect": "^1.2.11",
+    "wasm-feature-detect": "^1.8.0",
     "which": "^2.0.2"
   },
   "lint-staged": {
