@@ -3,11 +3,15 @@ import { instantiateEmscriptenWasm, pathify } from './emscripten-utils.js';
 import { threads } from 'wasm-feature-detect';
 import { cpus } from 'os';
 
-// We use `navigator.hardwareConcurrency` for Emscripten’s pthread pool size.
-// This is the only workaround I can get working without crying.
-(globalThis as any).navigator = {
-  hardwareConcurrency: cpus().length,
-};
+// Emscripten’s pthread pool reads navigator.hardwareConcurrency.
+// Node < 21 lacks globalThis.navigator; Node 24+ makes it a read-only getter.
+if (!globalThis.navigator) {
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { hardwareConcurrency: cpus().length },
+    writable: true,
+    configurable: true,
+  });
+}
 
 interface DecodeModule extends EmscriptenWasm.Module {
   decode: (data: Uint8Array) => ImageData;
@@ -44,13 +48,6 @@ export interface QuantOptions {
 
 export interface RotateOptions {
   numRotations: number;
-}
-
-declare global {
-  // Needed for being able to use ImageData as type in codec types
-  type ImageData = import('./image_data.js').default;
-  // Needed for being able to assign to `globalThis.ImageData`
-  var ImageData: ImageData['constructor'];
 }
 
 import type { QuantizerModule } from '../../codecs/imagequant/imagequant.js';
@@ -148,7 +145,7 @@ const imageQuantPromise: Promise<QuantizerModule> = instantiateEmscriptenWasm(
 
 // Our decoders currently rely on a `ImageData` global.
 import ImageData from './image_data.js';
-globalThis.ImageData = ImageData;
+globalThis.ImageData = ImageData as any;
 
 function resizeNameToIndex(name: string) {
   switch (name) {

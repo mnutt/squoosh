@@ -38,16 +38,5 @@ declare module 'chunk-url:../../codecs/avif/enc/avif_node_enc_mt.worker.js' {
   export default value;
 }
 
-// These don't exist in NodeJS types so we're not able to use them but they are referenced in some emscripten and codec types
-// Thus, we need to explicitly assign them to be `never`
-// We're also not able to use the APIs that use these types
-// So, if we want to use those APIs we need to supply its dependencies ourselves
-// However, probably those APIs are more suited to be used in web (i.e. there can be other
-// dependencies to web APIs that might not work in Node)
-type RequestInfo = never;
-type Response = never;
+// WebGLRenderingContext doesn't exist in Node types but is referenced by emscripten types
 type WebGLRenderingContext = never;
-type MessageEvent = never;
-
-type BufferSource = ArrayBufferView | ArrayBuffer;
-type URL = import('url').URL;
